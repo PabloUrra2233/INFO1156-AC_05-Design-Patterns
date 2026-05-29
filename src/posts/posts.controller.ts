@@ -12,7 +12,6 @@ import {
 import { PostEventPublisher } from "@/posts/events/post-event.publisher"
 import { PostEntityFactory } from "@/posts/factories/post-entity.factory"
 import { ModerationAdapter } from "@/posts/moderation.adapter"
-import { PrismaService } from "@/prisma/prisma.service"
 
 import { PostsService } from "@/posts/posts.service"
 import {
@@ -27,7 +26,6 @@ import { PostSortContext } from "@/posts/sorting.strategy"
 export class PostsController {
     constructor(
         private readonly postsService: PostsService,
-        private readonly prisma: PrismaService,
         private readonly postEntityFactory: PostEntityFactory,
         private readonly postEventPublisher: PostEventPublisher,
     ) {}
@@ -71,12 +69,7 @@ export class PostsController {
     async getFeed(@Query() query: FeedQueryDto) {
         const mode = query.mode || "latest"
 
-        const posts = await this.prisma.post.findMany({
-            include: {
-                comments: true,
-                likes: true,
-            },
-        })
+        const posts = await this.postsService.findFeedPosts()
 
         const mappedPosts = posts.map((post) =>
             this.postEntityFactory.createFeedPost(post, mode),
@@ -100,10 +93,7 @@ export class PostsController {
             throw new NotFoundException("Post not found")
         }
 
-        const comments = await this.prisma.comment.findMany({
-            where: { postId: id },
-            orderBy: { createdAt: "desc" },
-        })
+        const comments = await this.postsService.findCommentsByPostId(id)
 
         const entities = comments.map((comment) =>
             this.postEntityFactory.createStoredComment(comment),
@@ -138,13 +128,7 @@ export class PostsController {
             throw new BadRequestException("Comment blocked by moderation")
         }
 
-        const created = await this.prisma.comment.create({
-            data: {
-                postId: id,
-                content: body.content,
-                source: "controller",
-            },
-        })
+        const created = await this.postsService.createComment(id, body)
 
         const entity = this.postEntityFactory.createModeratedComment(
             created,
@@ -180,13 +164,9 @@ export class PostsController {
             throw new BadRequestException("Weight must be at least 1")
         }
 
-        const like = await this.prisma.like.create({
-            data: {
-                postId: id,
-                reactionType,
-                weight,
-                source: "controller",
-            },
+        const like = await this.postsService.addLike(id, {
+            reactionType,
+            weight,
         })
 
         const entity = this.postEntityFactory.createLike(like)

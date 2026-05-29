@@ -7,12 +7,14 @@ import {
     RelevanceRecomputeObserver,
 } from "@/posts/events/post-event.publisher"
 import { PostEntityFactory } from "@/posts/factories/post-entity.factory"
+import { PostsRepository } from "@/posts/posts.repository"
 import { PostsService } from "@/posts/posts.service"
 
 @Module({
     controllers: [PostsController],
     providers: [
         PostsService,
+        PostsRepository,
         PostEntityFactory,
         PostEventPublisher,
         DomainEventLogger,
