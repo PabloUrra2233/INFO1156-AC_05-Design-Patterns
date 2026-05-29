@@ -12,7 +12,7 @@ import {
 import { CommentEntity } from "@/posts/entities/comment.entity"
 import { LikeEntity } from "@/posts/entities/like.entity"
 import { PostEntity } from "@/posts/entities/post.entity"
-import { legacyModerationApi } from "@/posts/legacy-moderation.client"
+import { ModerationAdapter } from "@/posts/moderation.adapter"
 import { PrismaService } from "@/prisma/prisma.service"
 
 import { PostsService } from "@/posts/posts.service"
@@ -197,22 +197,10 @@ export class PostsController {
             throw new BadRequestException("Comment too short")
         }
 
-        // Cliente legacy: devuelve tipos mixtos (string/number/object).
-        const moderation = legacyModerationApi.review(body.content)
+        // Cliente legacy encapsulado tras un Adapter
+        const { isBlocked, rawResult: moderation } = ModerationAdapter.review(body.content)
 
-        let blocked = false
-
-        if (moderation === "BLOCK") {
-            blocked = true
-        } else if (typeof moderation === "number") {
-            blocked = moderation < 1
-        } else if (typeof moderation === "object") {
-            blocked = !("pass" in moderation && moderation.pass)
-        } else if (moderation === "OK") {
-            blocked = false
-        }
-
-        if (blocked) {
+        if (isBlocked) {
             throw new BadRequestException("Comment blocked by moderation")
         }
 

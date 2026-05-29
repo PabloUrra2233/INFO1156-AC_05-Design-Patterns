@@ -13,9 +13,9 @@ En esta sección se describen las deficiencias, bugs o limitaciones técnicas en
 * **Impacto:** [El problema violaba fuertemente el Principio de Responsabilidad Única (SRP) y el Principio de Abierto/Cerrado (OCP) de SOLID. Esto provocaba que el controlador estuviera sobrecargado y fuera difícil de leer].
 
 ---
-### ❗️ Problema 2: [Indique nombre del problema...]
-* **Descripción:** [Indique descripción del problema...].
-* **Impacto:** [Indique el impacto que poseía el problema en el proyecto...].
+### ❗️ Problema 2: [Lógica de Moderación "Legacy" con múltiples tipos]
+* **Descripción:** [El controlador principal interactuaba de forma directa con un cliente de moderación externo (legacy) cuyo método de revisión para estos, era inconsistente y terminaba en retornar múltiples tipos de datos distintos (string, number u object), haciendo que obligaba al controlador a implementar múltiples bloques de condicionales encadenados (if / elseif) utilizando el operador "typeof" para descifrar arduamente si un comentario debía ser bloqueado o no].
+* **Impacto:** [Esta situación violaba el Principio de Responsabilidad Única (SRP) y generaba un alto nivel de acoplamiento entre estos. La capa de controladores, cuya unica responsabilidad era manejar peticiones y respuestas HTTP, estaba estrechamente ligada a las particularidades y defectos de una librería externa. Si la API legacy llegaba a cambiar sus reglas de retorno, el controlador facilmente se rompería, haciendo que el código fuera muy frágil a la hora del minimo cambio].
 
 ---
 ### ❗️ Problema 3: [Indique nombre del problema...]
@@ -47,11 +47,11 @@ A continuación se detallan las decisiones de diseño y arquitectura de software
 
 ---
 ### 🛠 Solución a [Problema 2]
-* **Estrategia:** [Indique su solución/estrategia para solucionar el problema...].
-* **Justificación:** Indique la razón de esa estrategia como solución al problema...
+* **Estrategia:** [Se aplicó el patrón de diseño estructural Adapter. Para esto, se creó una nueva clase independiente llamada "ModerationAdapter". Esta clase actúa como un "traductor" o intermediario: envuelve la llamada a la API defectuosa, procesa internamente toda la compleja red de validaciones de "typeof" y expone hacia el exterior una interfaz estandarizada, predecible y fuertemente tipada retornando asi un simple booleano y el resultado original].
+* **Justificación:** El patrón Adapter es ideal en esta situacion porque su propósito es permitir que clases o sistemas con interfaces incompatibles trabajen juntos de forma "universal" por asi decirlo. Al usarlo, se logra proteger nuestro controlador "limpio" de la lógica "sucia" del mundo exterior. Además, se cumple con el Principio de Inversión de Dependencias y el Principio de Abierto/Cerrado (OCP) ya que si en un par de meses la API de moderación se actualiza o se llega a cambiar de proveedor, únicamente se deberia de modificar la clase "ModerationAdapter".
 
 <p align="center">
-  <img src="ruta/ejemplo..." alt="indicar tipo de patron..." width="80"/>
+  <img src="images/problema2.png" alt="Patron Adapter PB 2." width="1000"/>
 </p>
 
 ---
