@@ -24,11 +24,6 @@ En esta sección se describen las deficiencias, bugs o limitaciones técnicas en
 * **Impacto:** [El problema generaba duplicación de código y alto acoplamiento entre el controlador y acciones operativas secundarias. Si en el futuro se necesitaba agregar otro efecto, como enviar un correo, guardar una auditoría o actualizar métricas, habría que modificar varios métodos del controlador. Esto violaba el Principio de Responsabilidad Única (SRP) y hacía que el código fuera más difícil de mantener, probar y extender].
 
 ---
-### ❗️ Problema 4: [Indique nombre del problema...]
-* **Descripción:** [Indique descripción del problema...].
-* **Impacto:** [Indique el impacto que poseía el problema en el proyecto...].
-
----
 ### ❗️ Problema 4: [Mapeo complejo de entidades dentro del controlador]
 * **Descripción:** [El controlador construía directamente objetos de respuesta como PostEntity, CommentEntity y LikeEntity. Además, calculaba manualmente datos derivados como cantidad de likes, cantidad de comentarios, puntaje de relevancia, etiquetas, metadata, estado destacado y otros valores necesarios para presentar el feed. Esto hacía que el controlador mezclara lógica HTTP con lógica de transformación de datos].
 
