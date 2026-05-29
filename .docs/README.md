@@ -56,13 +56,6 @@ A continuación se detallan las decisiones de diseño y arquitectura de software
 
 * **Justificación:** El patrón Observer fue elegido porque permite desacoplar el objeto que genera un evento de los objetos que reaccionan ante él. Gracias a esto, el controlador ya no necesita conocer todos los efectos secundarios asociados a una acción. Si en el futuro se requiere agregar otro comportamiento, como enviar correos o guardar auditorías, basta con crear un nuevo observador sin modificar la lógica principal del controlador. Esto mejora la mantenibilidad, reduce duplicación y cumple mejor con el Principio de Responsabilidad Única (SRP).
 
-<p align="center">
-  <img src="images/problema3.png" alt="Patron Observer PB 3" width="1000"/>
-</p>*Justificación:** Indique la razón de esa estrategia como solución al problema...
-
-<p align="center">
-  <img src="ruta/ejemplo..." alt="indicar tipo de patron..." width="80"/>
-</p>
 
 ---
 ### 🛠 Solución a [Problema 4]
@@ -70,12 +63,6 @@ A continuación se detallan las decisiones de diseño y arquitectura de software
 
 * **Justificación:** El patrón Factory fue utilizado porque permite encapsular la lógica de creación de objetos complejos en un único lugar. Esto evita que el controlador conozca todos los detalles internos necesarios para construir las entidades de respuesta. Además, facilita reutilizar el mapeo en otros servicios o controladores, reduce duplicación y permite modificar la estructura de las entidades sin alterar directamente la capa HTTP. Con esta solución, el controlador queda más limpio y enfocado en coordinar la petición, mientras la fábrica se encarga de transformar los datos del dominio en objetos de salida.
 
-<p align="center">
-  <img src="images/problema4.png" alt="Patron Factory PB 4" width="1000"/>
-</p>
-<p align="center">
-  <img src="ruta/ejemplo..." alt="indicar tipo de patron..." width="80"/>
-</p>
 
 ---
 ### 🛠 Solución a [Problema 5]
