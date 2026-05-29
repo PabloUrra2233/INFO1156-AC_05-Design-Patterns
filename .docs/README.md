@@ -18,9 +18,10 @@ En esta sección se describen las deficiencias, bugs o limitaciones técnicas en
 * **Impacto:** [Esta situación violaba el Principio de Responsabilidad Única (SRP) y generaba un alto nivel de acoplamiento entre estos. La capa de controladores, cuya unica responsabilidad era manejar peticiones y respuestas HTTP, estaba estrechamente ligada a las particularidades y defectos de una librería externa. Si la API legacy llegaba a cambiar sus reglas de retorno, el controlador facilmente se rompería, haciendo que el código fuera muy frágil a la hora del minimo cambio].
 
 ---
-### ❗️ Problema 3: [Indique nombre del problema...]
-* **Descripción:** [Indique descripción del problema...].
-* **Impacto:** [Indique el impacto que poseía el problema en el proyecto...].
+### ❗️ Problema 3: [Side-effects y notificaciones repetidas]
+* **Descripción:** [El controlador principal ejecutaba directamente efectos secundarios cada vez que se creaba una publicación, un comentario o un like. En distintos métodos se repetían llamadas como registro de eventos, envío de notificaciones simuladas y procesos de recálculo interno. Esta lógica no pertenecía al controlador, ya que su responsabilidad principal debería limitarse a recibir peticiones HTTP, coordinar el flujo y devolver respuestas].
+
+* **Impacto:** [El problema generaba duplicación de código y alto acoplamiento entre el controlador y acciones operativas secundarias. Si en el futuro se necesitaba agregar otro efecto, como enviar un correo, guardar una auditoría o actualizar métricas, habría que modificar varios métodos del controlador. Esto violaba el Principio de Responsabilidad Única (SRP) y hacía que el código fuera más difícil de mantener, probar y extender].
 
 ---
 ### ❗️ Problema 4: [Indique nombre del problema...]
@@ -28,10 +29,10 @@ En esta sección se describen las deficiencias, bugs o limitaciones técnicas en
 * **Impacto:** [Indique el impacto que poseía el problema en el proyecto...].
 
 ---
-### ❗️ Problema 5: [Indique nombre del problema...]
-* **Descripción:** [Indique descripción del problema...].
-* **Impacto:** [Indique el impacto que poseía el problema en el proyecto...].
+### ❗️ Problema 4: [Mapeo complejo de entidades dentro del controlador]
+* **Descripción:** [El controlador construía directamente objetos de respuesta como PostEntity, CommentEntity y LikeEntity. Además, calculaba manualmente datos derivados como cantidad de likes, cantidad de comentarios, puntaje de relevancia, etiquetas, metadata, estado destacado y otros valores necesarios para presentar el feed. Esto hacía que el controlador mezclara lógica HTTP con lógica de transformación de datos].
 
+* **Impacto:** [El problema aumentaba demasiado la responsabilidad del controlador y hacía que el código fuera más extenso, rígido y difícil de leer. Cualquier cambio en la forma de construir una entidad o en los datos derivados obligaba a modificar el controlador. Esto afectaba el Principio de Responsabilidad Única (SRP), reducía la reutilización del mapeo y dificultaba mantener una estructura clara entre capas].
 ---
 ## Solución Implementada
 
@@ -56,8 +57,13 @@ A continuación se detallan las decisiones de diseño y arquitectura de software
 
 ---
 ### 🛠 Solución a [Problema 3]
-* **Estrategia:** [Indique su solución/estrategia para solucionar el problema...].
-* **Justificación:** Indique la razón de esa estrategia como solución al problema...
+* **Estrategia:** [Se implementó el patrón de diseño Observer. Para esto, se creó un publicador de eventos llamado PostEventPublisher, encargado de emitir eventos de dominio como "post.created", "comment.created" y "like.created". Además, se definieron observadores separados: DomainEventLogger para registrar eventos, NotificationObserver para simular notificaciones y RelevanceRecomputeObserver para ejecutar el recálculo asociado al post. De esta manera, el controlador dejó de llamar directamente a cada efecto secundario y ahora solo publica un evento cuando ocurre una acción importante].
+
+* **Justificación:** El patrón Observer fue elegido porque permite desacoplar el objeto que genera un evento de los objetos que reaccionan ante él. Gracias a esto, el controlador ya no necesita conocer todos los efectos secundarios asociados a una acción. Si en el futuro se requiere agregar otro comportamiento, como enviar correos o guardar auditorías, basta con crear un nuevo observador sin modificar la lógica principal del controlador. Esto mejora la mantenibilidad, reduce duplicación y cumple mejor con el Principio de Responsabilidad Única (SRP).
+
+<p align="center">
+  <img src="images/problema3.png" alt="Patron Observer PB 3" width="1000"/>
+</p>*Justificación:** Indique la razón de esa estrategia como solución al problema...
 
 <p align="center">
   <img src="ruta/ejemplo..." alt="indicar tipo de patron..." width="80"/>
@@ -65,9 +71,13 @@ A continuación se detallan las decisiones de diseño y arquitectura de software
 
 ---
 ### 🛠 Solución a [Problema 4]
-* **Estrategia:** [Indique su solución/estrategia para solucionar el problema...].
-* **Justificación:** Indique la razón de esa estrategia como solución al problema...
+* **Estrategia:** [Se implementó el patrón de diseño Factory. Para esto, se creó la clase PostEntityFactory, responsable de centralizar la creación de las entidades de salida del sistema. Esta fábrica contiene métodos para construir PostEntity, CommentEntity y LikeEntity, encapsulando los cálculos y transformaciones necesarios, como likesCount, commentsCount, relevanceScore, tags, metadata y rankingMode. Con esto, el controlador dejó de instanciar manualmente entidades complejas y delegó esa responsabilidad a una clase especializada].
 
+* **Justificación:** El patrón Factory fue utilizado porque permite encapsular la lógica de creación de objetos complejos en un único lugar. Esto evita que el controlador conozca todos los detalles internos necesarios para construir las entidades de respuesta. Además, facilita reutilizar el mapeo en otros servicios o controladores, reduce duplicación y permite modificar la estructura de las entidades sin alterar directamente la capa HTTP. Con esta solución, el controlador queda más limpio y enfocado en coordinar la petición, mientras la fábrica se encarga de transformar los datos del dominio en objetos de salida.
+
+<p align="center">
+  <img src="images/problema4.png" alt="Patron Factory PB 4" width="1000"/>
+</p>
 <p align="center">
   <img src="ruta/ejemplo..." alt="indicar tipo de patron..." width="80"/>
 </p>
